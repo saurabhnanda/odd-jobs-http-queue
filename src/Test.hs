@@ -25,6 +25,7 @@ import Data.String (fromString)
 import qualified Data.ByteString.Lazy as BSL
 import Debug.Trace
 import qualified Data.List as DL
+import qualified Data.CaseInsensitive as CI
 
 main :: IO ()
 main = do
@@ -50,6 +51,12 @@ testReqRoundtrip dbPool = testProperty "" $ property $ do
     (Http.path originalReq) === (Http.path recreatedReq)
     (Http.queryString originalReq) === (Http.queryString recreatedReq)
     (filteredHeaders $ Http.requestHeaders originalReq) === (filteredHeaders $ Http.requestHeaders recreatedReq)
+    case (Http.requestBody originalReq, Http.requestBody recreatedReq) of
+      (Http.RequestBodyBS x, Http.RequestBodyBS y) -> x===y
+      (Http.RequestBodyLBS x, Http.RequestBodyLBS y) -> x===y
+      (Http.RequestBodyBS x, Http.RequestBodyLBS y) -> BSL.fromStrict x===y
+      (Http.RequestBodyLBS x, Http.RequestBodyBS y) -> x===BSL.fromStrict y
+      z -> error "Unsupported"
   -- Create HTTP.Request =>
   -- Post to throwaway Wai server via WaiTest.runSession =>
   -- Get resultant Wai.Request =>
@@ -106,15 +113,29 @@ genWaiReq = do
   pure $ (flip WaiTest.setPath) (path <> "?" <> qry) $
     Wai.defaultRequest { requestMethod = method, httpVersion = HT.http11 }
 
+genRequestHeader :: (MonadGen m, GenBase m ~ Identity)
+                 => m (HT.HeaderName, BS.ByteString)
+genRequestHeader = (,)
+  <$> (fmap CI.mk $ Gen.utf8 (Range.linear 1 10) Gen.unicode)
+  <*> (Gen.utf8 (Range.linear 1 10) Gen.unicode)
+
+genReqHeaders :: (MonadGen m, GenBase m ~ Identity)
+              => m HT.RequestHeaders
+genReqHeaders = Gen.list (Range.linear 1 10) genRequestHeader
+
 genHttpReq :: (MonadGen m, GenBase m ~ Identity)
            => m Http.Request
 genHttpReq = do
   method <- genMethod
   path <- genPath
   qry <- genQuery
+  headers <- genReqHeaders
+  body <- Http.RequestBodyBS <$> Gen.bytes (Range.linear 1 1000)
   pure $ Http.defaultRequest { Http.method = method
                              , Http.host = "localhost"
                              , Http.port = 9009
                              , Http.path = path
                              , Http.queryString = qry
+                             , Http.requestHeaders  = headers
+                             , Http.requestBody = body
                              }
