@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fe94fdf3ea2e57dec13d3e87bc74277f9cd2e146ece2d4d72774183395548013
+-- hash: be138e4c3b2cb3a15bf93f55e02df4ffdff46d5f9f1c6cb3b33f1cb602e74eee
 
 name:           http-queue
 version:        0.1.0.0
@@ -23,6 +23,7 @@ executable http-queue
   main-is: Main.hs
   other-modules:
       Migrations
+      Test
       Types
       Paths_http_queue
   hs-source-dirs:
@@ -35,12 +36,60 @@ executable http-queue
     , bytestring
     , case-insensitive
     , either
+    , hashable
+    , http-client
+    , http-client-tls
     , http-types
     , odd-jobs
     , optparse-applicative
     , postgresql-simple
     , resource-pool
     , safe
+    , text
+    , time
+    , unliftio
+    , unliftio-core
+    , unordered-containers
+    , vector
+    , wai
+    , wai-extra
+    , warp
+  default-language: Haskell2010
+
+test-suite http-queue-tests
+  type: exitcode-stdio-1.0
+  main-is: Test.hs
+  other-modules:
+      Main
+      Migrations
+      Types
+      Paths_http_queue
+  hs-source-dirs:
+      src
+  default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
+  ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Test
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , case-insensitive
+    , containers
+    , either
+    , hashable
+    , hedgehog
+    , http-client
+    , http-client-tls
+    , http-types
+    , monad-control
+    , odd-jobs
+    , optparse-applicative
+    , postgresql-simple
+    , random
+    , resource-pool
+    , safe
+    , tasty
+    , tasty-hedgehog
+    , tasty-hunit
     , text
     , time
     , unliftio

@@ -24,8 +24,7 @@ createHttpSinkTableQuery =
   "( id serial primary key" <>
   ", active boolean not null default true" <>
   ", source_path text not null" <>
-  ", sink_host text not null" <>
-  ", sink_path text not null" <>
+  ", sink_url text not null" <>
   ", created_at timestamp with time zone default now() not null" <>
   ")"
 

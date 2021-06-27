@@ -44,12 +44,15 @@ dependencies:
   - odd-jobs
   - wai-extra
   - http-types
+  - http-client
+  - http-client-tls
   - optparse-applicative
   - postgresql-simple
   - unordered-containers
   - vector
   - resource-pool
   - case-insensitive
+  - hashable
 
 ghc-options: 
   - -Wall 
@@ -65,3 +68,17 @@ executables:
   http-queue:
     source-dirs:      src
     main:             Main.hs
+
+tests:
+  http-queue-tests:
+    main: Test
+    source-dirs:
+      - src
+    dependencies:
+      - tasty
+      - hedgehog
+      - tasty-hedgehog
+      - tasty-hunit
+      - random
+      - monad-control
+      - containers

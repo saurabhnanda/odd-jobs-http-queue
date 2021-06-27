@@ -17,12 +17,18 @@ import OddJobs.Types (TableName)
 import GHC.Generics
 import Database.PostgreSQL.Simple.FromField as PGS (FromField(..))
 import Database.PostgreSQL.Simple.ToField as PGS (ToField(..))
-
+import qualified Data.HashMap.Strict as HM
+import qualified Network.HTTP.Client as Http
+import UnliftIO (Exception)
+import Data.Pool (Pool)
+import Database.PostgreSQL.Simple as PGS (Connection)
+import UnliftIO (IORef)
+import Data.Hashable (Hashable)
 
 jobTable :: TableName
 jobTable = "jobs"
 
-data ReqId = ReqId { rawReqId :: Int } deriving (Eq, Show, Generic)
+data ReqId = ReqId { rawReqId :: Int } deriving (Eq, Show, Generic, Read)
 instance ToJSON ReqId where toJSON = genericToJSON Aeson.defaultOptions{unwrapUnaryRecords=True}
 instance FromJSON ReqId where parseJSON = genericParseJSON Aeson.defaultOptions{unwrapUnaryRecords=True}
 
@@ -91,7 +97,7 @@ instance ToJSON JobPayload where
   toJSON = genericToJSON Aeson.defaultOptions {tagSingleConstructors=True}
 
 
-data SinkId = SinkId { rawSinkId :: Int } deriving (Eq, Show, Generic)
+data SinkId = SinkId { rawSinkId :: Int } deriving (Eq, Show, Generic, Hashable)
 
 instance ToJSON SinkId where toJSON = genericToJSON Aeson.defaultOptions{unwrapUnaryRecords=True}
 instance FromJSON SinkId where parseJSON = genericParseJSON Aeson.defaultOptions{unwrapUnaryRecords=True}
@@ -106,6 +112,18 @@ data Sink = Sink
   { sinkId :: !SinkId
   , sinkActive :: !Bool
   , sinkSourcePath :: !BS.ByteString
-  , sinkHost :: !BS.ByteString
-  , sinkPath :: !BS.ByteString
+  , sinkUrl :: !BS.ByteString
   } deriving (Eq, Show)
+
+type SinkPathMap = HM.HashMap BS.ByteString [Sink]
+type SinkIdMap = HM.HashMap SinkId Http.Request
+
+data Env = Env
+  { envPool :: !(Pool Connection)
+  , envSinkPathMapRef :: !(IORef SinkPathMap)
+  , envSinkIdMapRef :: !(IORef SinkIdMap)
+  }
+
+data SinkNotFoundException = SinkNotFoundException SinkId deriving (Eq, Show)
+instance Exception SinkNotFoundException
+
