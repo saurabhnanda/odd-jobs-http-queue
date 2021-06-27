@@ -1,0 +1,53 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: fe94fdf3ea2e57dec13d3e87bc74277f9cd2e146ece2d4d72774183395548013
+
+name:           http-queue
+version:        0.1.0.0
+category:       Web
+homepage:       https://github.com/saurabhnanda/http-queue#readme
+author:         Saurabh Nanda
+maintainer:     saurabhnanda@gmail.com
+copyright:      Saurabh Nanda
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+executable http-queue
+  main-is: Main.hs
+  other-modules:
+      Migrations
+      Types
+      Paths_http_queue
+  hs-source-dirs:
+      src
+  default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
+  ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , case-insensitive
+    , either
+    , http-types
+    , odd-jobs
+    , optparse-applicative
+    , postgresql-simple
+    , resource-pool
+    , safe
+    , text
+    , time
+    , unliftio
+    , unliftio-core
+    , unordered-containers
+    , vector
+    , wai
+    , wai-extra
+    , warp
+  default-language: Haskell2010

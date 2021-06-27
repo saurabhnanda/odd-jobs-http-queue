@@ -1,0 +1,67 @@
+name:                http-queue
+version:             0.1.0.0
+#synopsis:
+#description:
+homepage:            https://github.com/saurabhnanda/http-queue#readme
+license:             BSD3
+author:              Saurabh Nanda
+maintainer:          saurabhnanda@gmail.com
+copyright:           Saurabh Nanda
+category:            Web
+extra-source-files:
+- README.md
+
+default-extensions:
+- OverloadedStrings
+- RecordWildCards
+- DeriveGeneric
+- FlexibleInstances
+- FlexibleContexts
+- FunctionalDependencies
+- GeneralizedNewtypeDeriving
+- KindSignatures
+- MultiParamTypeClasses
+- TemplateHaskell
+- TypeFamilies
+- TypeSynonymInstances
+- QuasiQuotes
+- ScopedTypeVariables
+- LambdaCase
+- NamedFieldPuns
+
+dependencies:
+  - base >= 4.7 && < 5
+  - aeson
+  - text
+  - bytestring
+  - time
+  - unliftio
+  - unliftio-core
+  - either
+  - warp
+  - wai
+  - safe
+  - odd-jobs
+  - wai-extra
+  - http-types
+  - optparse-applicative
+  - postgresql-simple
+  - unordered-containers
+  - vector
+  - resource-pool
+  - case-insensitive
+
+ghc-options: 
+  - -Wall 
+  - -fno-warn-orphans 
+  - -fno-warn-unused-imports 
+  - -fno-warn-dodgy-exports 
+  - -Werror=missing-fields
+  - -Werror=incomplete-patterns
+  - -threaded
+  - -with-rtsopts=-N
+
+executables:
+  http-queue:
+    source-dirs:      src
+    main:             Main.hs
