@@ -16,6 +16,7 @@ createHttpSourceTableQuery =
   ", headers text[][]" <>
   ", body bytea" <>
   ", created_at timestamp with time zone default now () not null" <>
+  ", remaining int not null" <>
   ")"
 
 createHttpSinkTableQuery :: Query

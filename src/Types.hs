@@ -45,8 +45,8 @@ data Req = Req
   , reqQueryString :: !BS.ByteString
   , reqHeaders :: !HT.RequestHeaders
   , reqBody :: !BSL.ByteString
+  , reqRemaining :: !Int
   }
-
 
 
 -- instance FromRow Req where
@@ -117,12 +117,6 @@ data Sink = Sink
 
 type SinkPathMap = HM.HashMap BS.ByteString [Sink]
 type SinkIdMap = HM.HashMap SinkId Http.Request
-
-data Env = Env
-  { envPool :: !(Pool Connection)
-  , envSinkPathMapRef :: !(IORef SinkPathMap)
-  , envSinkIdMapRef :: !(IORef SinkIdMap)
-  }
 
 data SinkNotFoundException = SinkNotFoundException SinkId deriving (Eq, Show)
 instance Exception SinkNotFoundException

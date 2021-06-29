@@ -58,22 +58,31 @@ ghc-options:
   - -Wall 
   - -fno-warn-orphans 
   - -fno-warn-unused-imports 
-  - -fno-warn-dodgy-exports 
+  - -fno-warn-dodgy-exports
   - -Werror=missing-fields
   - -Werror=incomplete-patterns
   - -threaded
   - -with-rtsopts=-N
 
 executables:
-  http-queue:
+  http-queue-source:
     source-dirs:      src
-    main:             Main.hs
+    main:             Source.hs
+    ghc-options:
+      - -main-is Source
+
+  http-queue-sink:
+    source-dirs:      src
+    main:             Sink.hs
+    ghc-options:
+      - -main-is Sink
 
 tests:
   http-queue-tests:
     main: Test
     source-dirs:
       - src
+      - test
     dependencies:
       - tasty
       - hedgehog

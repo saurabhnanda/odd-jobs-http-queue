@@ -18,7 +18,6 @@ import UnliftIO.Async
 import Network.Wai.Handler.Warp as Warp
 import Network.HTTP.Client.TLS (getGlobalManager)
 import qualified Data.ByteString.Lazy.Char8 as LC8
-import qualified Main as Q
 import UnliftIO (liftIO)
 import Types (ReqId(..))
 import Data.String (fromString)
@@ -26,10 +25,13 @@ import qualified Data.ByteString.Lazy as BSL
 import Debug.Trace
 import qualified Data.List as DL
 import qualified Data.CaseInsensitive as CI
+import qualified Common
+import qualified Source
+import qualified Sink
 
 main :: IO ()
 main = do
-  Q.withPool "dbname=http_queue user=b2b password=b2b host=localhost" $ \dbPool -> do
+  Common.withPool "dbname=http_queue user=b2b password=b2b host=localhost" $ \dbPool -> do
     withAsync (Warp.run 9009 $ waiApp dbPool) $ \_ -> do
       defaultMain $
         testGroup "All tests"
@@ -37,7 +39,7 @@ main = do
 
 waiApp :: Pool Connection -> Wai.Application
 waiApp dbPool req respondFn = withResource dbPool $ \conn -> do
-  rid <- Q.saveReq conn req
+  rid <- Source.saveReq conn req 1
   respondFn $ Wai.responseLBS HT.status200 [] $ fromString $ show rid
 
 testReqRoundtrip dbPool = testProperty "" $ property $ do
@@ -45,8 +47,8 @@ testReqRoundtrip dbPool = testProperty "" $ property $ do
   test $ do
     res <- liftIO $ getGlobalManager >>= Http.httpLbs originalReq
     let rid = read $ LC8.unpack $ Http.responseBody res
-    dbReq <- liftIO $ withResource dbPool $ \conn -> Q.loadReq conn rid
-    let recreatedReq = Q.prepareHttpReq dbReq
+    dbReq <- liftIO $ withResource dbPool $ \conn -> Sink.loadReq conn rid
+    let recreatedReq = Sink.prepareHttpReq Http.defaultRequest dbReq
     (Http.method originalReq) === (Http.method recreatedReq)
     (Http.path originalReq) === (Http.path recreatedReq)
     (Http.queryString originalReq) === (Http.queryString recreatedReq)
@@ -57,14 +59,6 @@ testReqRoundtrip dbPool = testProperty "" $ property $ do
       (Http.RequestBodyBS x, Http.RequestBodyLBS y) -> BSL.fromStrict x===y
       (Http.RequestBodyLBS x, Http.RequestBodyBS y) -> x===BSL.fromStrict y
       z -> error "Unsupported"
-  -- Create HTTP.Request =>
-  -- Post to throwaway Wai server via WaiTest.runSession =>
-  -- Get resultant Wai.Request =>
-  -- Convert to Req =>
-  -- Save to DB =>
-  -- Load from DB =>
-  -- Construct HTTP.Request =>
-  -- Roundtrip completed
 
 filteredHeaders :: HT.RequestHeaders -> HT.RequestHeaders
 filteredHeaders = DL.filter $ \(h, _) -> h `DL.notElem` ignoredRequestHeaders

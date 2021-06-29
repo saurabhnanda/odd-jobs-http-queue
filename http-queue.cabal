@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: be138e4c3b2cb3a15bf93f55e02df4ffdff46d5f9f1c6cb3b33f1cb602e74eee
+-- hash: 4c932cee3b02cce7ad645002155135739aaa4c8c2cbce6eb2f9de7fd6f4eeee9
 
 name:           http-queue
 version:        0.1.0.0
@@ -19,17 +19,56 @@ build-type:     Simple
 extra-source-files:
     README.md
 
-executable http-queue
-  main-is: Main.hs
+executable http-queue-sink
+  main-is: Sink.hs
   other-modules:
+      Common
       Migrations
-      Test
+      Source
       Types
       Paths_http_queue
   hs-source-dirs:
       src
   default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
-  ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N
+  ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Sink
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , case-insensitive
+    , either
+    , hashable
+    , http-client
+    , http-client-tls
+    , http-types
+    , odd-jobs
+    , optparse-applicative
+    , postgresql-simple
+    , resource-pool
+    , safe
+    , text
+    , time
+    , unliftio
+    , unliftio-core
+    , unordered-containers
+    , vector
+    , wai
+    , wai-extra
+    , warp
+  default-language: Haskell2010
+
+executable http-queue-source
+  main-is: Source.hs
+  other-modules:
+      Common
+      Migrations
+      Sink
+      Types
+      Paths_http_queue
+  hs-source-dirs:
+      src
+  default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
+  ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Source
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -60,12 +99,15 @@ test-suite http-queue-tests
   type: exitcode-stdio-1.0
   main-is: Test.hs
   other-modules:
-      Main
+      Common
       Migrations
+      Sink
+      Source
       Types
       Paths_http_queue
   hs-source-dirs:
       src
+      test
   default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Test
   build-depends:
