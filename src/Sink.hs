@@ -20,7 +20,7 @@ import qualified Data.CaseInsensitive as CI
 import qualified OddJobs.Cli as Job (defaultMain)
 import OddJobs.ConfigBuilder as Job
 import Network.HTTP.Client.TLS (getGlobalManager)
-
+import System.Log.FastLogger as FL
 
 data Env = Env
   { envPool :: !(Pool Connection)
@@ -31,23 +31,22 @@ data Env = Env
 main :: IO ()
 main = do
   envManager <- getGlobalManager
-  withPool "dbname=http_queue user=b2b password=b2b host=localhost" $ \envPool -> do
-    envSinkIdMapRef <- (withResource envPool loadActiveSinks) >>= prepareSinkIdMap >>= newIORef
+  tcache <- FL.newTimeCache FL.simpleTimeFormat
+  withTimedFastLogger tcache (LogStdout FL.defaultBufSize) $ \tlogger -> do
+    let jobLogFn = Job.defaultTimedLogger tlogger (Job.defaultLogStr Job.defaultJobType)
+    withPool "dbname=http_queue user=b2b password=b2b host=localhost" $ \envPool -> do
+      envSinkIdMapRef <- (withResource envPool loadActiveSinks) >>= prepareSinkIdMap >>= newIORef
 
-    let jobCfg = Job.mkConfig
-                 jobLogFn
-                 jobTable
-                 envPool
-                 (MaxConcurrentJobs 100)
-                 (runJob Env{..}) $
-                 \cfg -> cfg { cfgDefaultMaxAttempts = 17 }
+      let jobCfg = Job.mkConfig
+                   jobLogFn
+                   jobTable
+                   envPool
+                   (MaxConcurrentJobs 100)
+                   (runJob Env{..}) $
+                   \cfg -> cfg { cfgDefaultMaxAttempts = 17 }
 
-    putStrLn "Starting job runner..."
-    startJobRunner jobCfg
-
--- TODO: implement this properly
-jobLogFn :: LogLevel -> LogEvent -> IO ()
-jobLogFn ll le = pure ()
+      putStrLn "Starting job runner..."
+      startJobRunner jobCfg
 
 callSink :: Env -> ReqId -> SinkId -> IO ()
 callSink Env{..} rid sid = do

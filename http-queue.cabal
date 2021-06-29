@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4c932cee3b02cce7ad645002155135739aaa4c8c2cbce6eb2f9de7fd6f4eeee9
+-- hash: fa97757b693219e6f4d363217d0b540b667714b0bc3e2db59cc69e9c8545ebe9
 
 name:           http-queue
 version:        0.1.0.0
@@ -37,6 +37,7 @@ executable http-queue-sink
     , bytestring
     , case-insensitive
     , either
+    , fast-logger
     , hashable
     , http-client
     , http-client-tls
@@ -75,6 +76,7 @@ executable http-queue-source
     , bytestring
     , case-insensitive
     , either
+    , fast-logger
     , hashable
     , http-client
     , http-client-tls
@@ -117,6 +119,7 @@ test-suite http-queue-tests
     , case-insensitive
     , containers
     , either
+    , fast-logger
     , hashable
     , hedgehog
     , http-client

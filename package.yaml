@@ -53,6 +53,7 @@ dependencies:
   - resource-pool
   - case-insensitive
   - hashable
+  - fast-logger
 
 ghc-options: 
   - -Wall 
