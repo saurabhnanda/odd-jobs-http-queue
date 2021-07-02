@@ -35,11 +35,14 @@ import qualified Network.HTTP.Client as Http
 import qualified Data.ByteString.Char8 as C8
 import Network.HTTP.Client.TLS (getGlobalManager)
 import Common
+import System.Log.FastLogger as FL
+import UnliftIO.Async
 
 data Env = Env
   { envPool :: !(Pool Connection)
   , envSinkPathMapRef :: !(IORef SinkPathMap)
   , envManager :: !Http.Manager
+  , envLogger :: LogLevel -> LogStr -> IO ()
   }
 
 
@@ -47,30 +50,49 @@ data Env = Env
 main :: IO ()
 main = do
   envManager <- getGlobalManager
-  withPool "dbname=http_queue user=b2b password=b2b host=localhost" $ \envPool -> do
-    withResource envPool runMigrations
+  tcache <- FL.newTimeCache FL.simpleTimeFormat
+  withTimedFastLogger tcache (LogStdout FL.defaultBufSize) $ \tlogger -> do
+    let envLogger = loggingFn tlogger
+    envLogger LevelDebug "--- [Source] before withPool"
+    withPool "dbname=http_queue user=b2b password=b2b host=localhost" $ \envPool -> do
 
-    putStrLn "Creating sink map"
-    envSinkPathMapRef <- withResource envPool $ \conn ->
-      (loadActiveSinks conn) >>= (newIORef . prepareSinkPathMap)
+      envLogger LevelDebug "--- [Source] before createsinkMap"
+      envSinkPathMapRef <- withResource envPool $ \conn ->
+        (loadActiveSinks conn) >>= (newIORef . prepareSinkPathMap)
 
-    putStrLn "starting on port 9000"
-    Warp.run 9000 $ coreApp Env{..}
-  where
-    isAdminUiHost req =
-      let h = requestHeaderHost req
-      in h == (Just "http-queue-admin") || (fmap (BS.isPrefixOf "http-queue-admin:") h == Just True)
+
+      let sinkCfgListener = withResource envPool $ \conn ->
+            Common.withSinkCfgListener conn $ (writeIORef envSinkPathMapRef) . prepareSinkPathMap
+
+      envLogger LevelDebug "--- [Source] before withAsync sinkCfgListener"
+      withAsync sinkCfgListener $ \_ -> do
+        envLogger LevelInfo "--- [Source] Starting on port 9000"
+        Warp.run 9000 $ coreApp Env{..}
+    where
+      isAdminUiHost req =
+        let h = requestHeaderHost req
+        in h == (Just "http-queue-admin") || (fmap (BS.isPrefixOf "http-queue-admin:") h == Just True)
+
+-- TODO: Handle LogLevel properly
+loggingFn :: TimedFastLogger -> LogLevel -> LogStr -> IO ()
+loggingFn tlogger _ lstr = tlogger $ \t -> toLogStr t <> " | " <> lstr <> "\n"
+
 
 coreApp :: Env -> Wai.Application
 coreApp Env{..} req responseFn = withResource envPool $ \conn -> do
   activeSinks <- readIORef envSinkPathMapRef
-  case HM.lookup (rawPathInfo req) activeSinks of
-    Nothing -> responseFn $ Wai.responseLBS status400 [] "Incoming path does not have even a single corresponding HTTP sink"
+  let rpath = (rawPathInfo req)
+  case HM.lookup rpath activeSinks of
+    Nothing -> do
+      envLogger LevelError $ "Sink not found for incoming path: " <> toLogStr rpath
+      responseFn $ Wai.responseLBS status400 [] "Incoming path does not have even a single corresponding HTTP sink"
     Just sinks -> PGS.withTransaction conn $ do
       rid <- saveReq conn req (DL.length sinks)
       jobs <- forM sinks $ \Sink{sinkId} -> Job.createJob conn jobTable $ JobReq rid sinkId
       let jids = DL.map Job.jobId jobs
-      responseFn $ Wai.responseLBS status200 [] $ "Queued: " <> (fromString $ show jids)
+          jidStrs = show jids
+      envLogger LevelDebug $ "Queued: " <> (toLogStr $ show jidStrs)
+      responseFn $ Wai.responseLBS status200 [] $ "Queued: " <> (fromString jidStrs)
 
 -- adminApp :: Wai.Application
 -- adminApp req responseFn =
@@ -94,7 +116,3 @@ saveReq conn req sinkCnt = do
   where
     removeHostHeader = DL.filter (\(k, _) -> k /= HT.hHost)
     qry = "INSERT INTO http_requests(method, path, query, headers, body, remaining) VALUES(?, ?, ?, ?, ?, ?) RETURNING id"
-
-
-
-

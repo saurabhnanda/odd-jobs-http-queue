@@ -16,7 +16,9 @@ import Data.String (fromString)
 import OddJobs.Types (TableName)
 import GHC.Generics
 import Database.PostgreSQL.Simple.FromField as PGS (FromField(..))
+import Database.PostgreSQL.Simple.Types as PGS
 import Database.PostgreSQL.Simple.ToField as PGS (ToField(..))
+import Database.PostgreSQL.Simple.FromRow as PGS (FromRow(..), field)
 import qualified Data.HashMap.Strict as HM
 import qualified Network.HTTP.Client as Http
 import UnliftIO (Exception)
@@ -27,6 +29,9 @@ import Data.Hashable (Hashable)
 
 jobTable :: TableName
 jobTable = "jobs"
+
+sinkChangedChannel :: PGS.Identifier
+sinkChangedChannel = "sink_changed"
 
 data ReqId = ReqId { rawReqId :: Int } deriving (Eq, Show, Generic, Read)
 instance ToJSON ReqId where toJSON = genericToJSON Aeson.defaultOptions{unwrapUnaryRecords=True}
@@ -114,6 +119,13 @@ data Sink = Sink
   , sinkSourcePath :: !BS.ByteString
   , sinkUrl :: !BS.ByteString
   } deriving (Eq, Show)
+
+instance FromRow Sink where
+  fromRow = Sink
+    <$> field
+    <*> field
+    <*> field
+    <*> field
 
 type SinkPathMap = HM.HashMap BS.ByteString [Sink]
 type SinkIdMap = HM.HashMap SinkId Http.Request

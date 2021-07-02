@@ -78,6 +78,12 @@ executables:
     ghc-options:
       - -main-is Sink
 
+  http-queue-migrations:
+    source-dirs:      src
+    main:             Migrations.hs
+    ghc-options:
+      - -main-is Migrations
+
 tests:
   http-queue-tests:
     main: Test
@@ -92,3 +98,7 @@ tests:
       - random
       - monad-control
       - containers
+      - lifted-async
+      - monad-control
+      - port-utils
+
