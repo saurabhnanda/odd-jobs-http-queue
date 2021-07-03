@@ -62,7 +62,10 @@ main = do
 
 
       let sinkCfgListener = withResource envPool $ \conn ->
-            Common.withSinkCfgListener conn $ (writeIORef envSinkPathMapRef) . prepareSinkPathMap
+            Common.withSinkCfgListener conn $ \sinks -> do
+            envLogger LevelInfo "[Source] About to reload sink map"
+            writeIORef envSinkPathMapRef $ prepareSinkPathMap sinks
+            envLogger LevelInfo "[Source] Reloaded sink map"
 
       envLogger LevelDebug "--- [Source] before withAsync sinkCfgListener"
       withAsync sinkCfgListener $ \_ -> do
@@ -105,7 +108,7 @@ saveReq conn req sinkCnt = do
              , rawPathInfo req
              , rawQueryString req
              , PGArray $ DL.map (\(k, v) -> PGArray [toField $ CI.original k, toField v]) $
-               removeHostHeader $
+               removeHeaders $
                requestHeaders req
              , Binary b
              , sinkCnt
@@ -114,5 +117,5 @@ saveReq conn req sinkCnt = do
     (Only x):[] -> pure x
     y -> error $ "Unexpected result from SQL query: " <> show y
   where
-    removeHostHeader = DL.filter (\(k, _) -> k /= HT.hHost)
+    removeHeaders = DL.filter (\(k, _) -> k /= HT.hHost && k /= HT.hContentLength)
     qry = "INSERT INTO http_requests(method, path, query, headers, body, remaining) VALUES(?, ?, ?, ?, ?, ?) RETURNING id"

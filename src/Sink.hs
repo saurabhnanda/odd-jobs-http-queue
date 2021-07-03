@@ -30,6 +30,7 @@ data Env = Env
   { envPool :: !(Pool Connection)
   , envSinkIdMapRef :: !(IORef SinkIdMap)
   , envManager :: !Http.Manager
+  , envLogger :: LogLevel -> LogStr -> IO ()
   }
 
 main :: IO ()
@@ -39,6 +40,7 @@ main = do
   putStrLn "### [Sink] before withTimedFastLogger..."
   withTimedFastLogger tcache (LogStdout FL.defaultBufSize) $ \tlogger -> do
     let jobLogFn = Job.defaultTimedLogger tlogger (Job.defaultLogStr Job.defaultJobType)
+        envLogger = loggingFn tlogger
     putStrLn "### [Sink] before runPool..."
     withPool "dbname=http_queue user=b2b password=b2b host=localhost" $ \envPool -> do
       putStrLn "### [Sink] before prepraeSinkIdMap..."
@@ -53,13 +55,19 @@ main = do
                    \cfg -> cfg { cfgDefaultMaxAttempts = 17 }
 
       let sinkCfgListener = withResource envPool $ \conn ->
-            Common.withSinkCfgListener conn $ \sinks ->
+            Common.withSinkCfgListener conn $ \sinks -> do
+            envLogger LevelInfo "[Sink] About to reload sink map"
             prepareSinkIdMap sinks >>= writeIORef envSinkIdMapRef
+            envLogger LevelInfo "[Sink] Reloaded sink map"
 
       putStrLn "### [Sink] before sinkCfgListener..."
       withAsync sinkCfgListener $ \_ -> do
         putStrLn "### Starting job runner..."
         startJobRunner jobCfg
+
+-- TODO: Handle LogLevel properly
+loggingFn :: TimedFastLogger -> LogLevel -> LogStr -> IO ()
+loggingFn tlogger _ lstr = tlogger $ \t -> toLogStr t <> " | " <> lstr <> "\n"
 
 callSink :: Env -> ReqId -> SinkId -> IO ()
 callSink Env{..} rid sid = do
@@ -87,7 +95,6 @@ jobRunner env j = do
 prepareHttpReq :: Http.Request -> Req -> Http.Request
 prepareHttpReq r Req{..} = r
   { Http.method = reqMethod
-  , Http.path = reqPathInfo
   , Http.queryString = reqQueryString
   , Http.requestHeaders = reqHeaders
   , Http.requestBody = Http.RequestBodyLBS reqBody

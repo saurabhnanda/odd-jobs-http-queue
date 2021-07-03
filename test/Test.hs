@@ -93,13 +93,14 @@ coreLogicSinkApp logRef req respondFn = do
 
 testReqRoundtrip dbPool port = testProperty "http-request round-trip" $ property $ do
   originalReq <- forAll $ genHttpReq Http.defaultRequest{Http.port=port} genPath
+  sinkPath <- forAll genPath
   test $ do
     res <- liftIO $ getGlobalManager >>= Http.httpLbs originalReq
     let rid = read $ LC8.unpack $ Http.responseBody res
     dbReq <- liftIO $ withResource dbPool $ \conn -> Sink.loadReq conn rid
-    let recreatedReq = Sink.prepareHttpReq Http.defaultRequest dbReq
+    let recreatedReq = Sink.prepareHttpReq Http.defaultRequest{Http.path=sinkPath} dbReq
     (Http.method originalReq) === (Http.method recreatedReq)
-    (Http.path originalReq) === (Http.path recreatedReq)
+    sinkPath === (Http.path recreatedReq)
     (Http.queryString originalReq) === (Http.queryString recreatedReq)
     (filteredHeaders $ Http.requestHeaders originalReq) === (filteredHeaders $ Http.requestHeaders recreatedReq)
     case (Http.requestBody originalReq, Http.requestBody recreatedReq) of
@@ -109,11 +110,11 @@ testReqRoundtrip dbPool port = testProperty "http-request round-trip" $ property
       (Http.RequestBodyLBS x, Http.RequestBodyBS y) -> x===BSL.fromStrict y
       z -> error "Unsupported"
 
-testCoreLogic dbPool = testProperty "core source-sink logic" $ withTests 5 $ property $ do
+testCoreLogic dbPool = testProperty "core source-sink logic" $ withTests 1 $ property $ do
 
-  testData :: [(BS.ByteString, Int, [Http.Request])] <- forAll $ Gen.list (Range.constant 1 10) $ do
-    sourcePath <- Gen.filter (\x -> BS.length x > 3) genPath
-    sinkCount <- Gen.int (Range.constant 1 10)
+  testData :: [(BS.ByteString, Int, [Http.Request])] <- forAll $ Gen.list (Range.constant 1 30) $ do
+    sourcePath <- Gen.filter (\x -> BS.length x > 5) genPath
+    sinkCount <- Gen.int (Range.constant 1 30)
     httpReqs <- Gen.list (Range.constant 1 10) $
                 genHttpReq Http.defaultRequest{Http.port=9000} $ pure sourcePath
     pure (sourcePath, sinkCount, httpReqs)
@@ -141,6 +142,7 @@ testCoreLogic dbPool = testProperty "core source-sink logic" $ withTests 5 $ pro
                        pollTest logRef newLogCnt
 
   test $ do
+    liftIO $ putStrLn "$$$$$$$$$$ I WAS RUN $$$$$$$$$$"
     logRef <- newIORef []
     runRandomPort (coreLogicSinkApp logRef) $ \sinkPort -> do
       liftIO $ do

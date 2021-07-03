@@ -12,6 +12,7 @@ import qualified Data.ByteString.Char8 as C8
 import UnliftIO (bracket)
 import Control.Monad (forM, forever, void)
 import Database.PostgreSQL.Simple.Notification as PGS
+import Debug.Trace
 
 withPool :: BS.ByteString
          -> (Pool PGS.Connection -> IO a)
