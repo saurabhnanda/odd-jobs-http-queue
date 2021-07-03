@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: db23c2c71d876cea0e4acec794610057edc91a3872a0618cc7fd6d1b099a689c
+-- hash: e760522373624d7dd5e30e3644ca4761a14ba626e78588983e023f377d1a05a9
 
 name:           http-queue
 version:        0.1.0.0
@@ -23,12 +23,11 @@ executable http-queue-migrations
   main-is: Migrations.hs
   other-modules:
       Common
-      Sink
-      Source
       Types
       Paths_http_queue
   hs-source-dirs:
-      src
+      common
+      migrations
   default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Migrations
   build-depends:
@@ -62,12 +61,11 @@ executable http-queue-sink
   main-is: Sink.hs
   other-modules:
       Common
-      Migrations
-      Source
       Types
       Paths_http_queue
   hs-source-dirs:
-      src
+      common
+      sink
   default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Sink
   build-depends:
@@ -101,12 +99,11 @@ executable http-queue-source
   main-is: Source.hs
   other-modules:
       Common
-      Migrations
-      Sink
       Types
       Paths_http_queue
   hs-source-dirs:
-      src
+      common
+      source
   default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Source
   build-depends:
@@ -141,13 +138,16 @@ test-suite http-queue-tests
   main-is: Test.hs
   other-modules:
       Common
-      Migrations
-      Sink
-      Source
       Types
+      Source
+      Sink
+      Migrations
       Paths_http_queue
   hs-source-dirs:
-      src
+      common
+      source
+      sink
+      migrations
       test
   default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Test

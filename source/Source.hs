@@ -23,7 +23,6 @@ import Database.PostgreSQL.Simple.FromRow as PGS (field)
 import Database.PostgreSQL.Simple.FromField as PGS (fromField)
 import Database.PostgreSQL.Simple.Types as PGS (PGArray(..), Binary(..))
 import Types
-import Migrations (runMigrations)
 import Data.Aeson as Aeson
 import qualified Data.List as DL
 import qualified Data.CaseInsensitive as CI

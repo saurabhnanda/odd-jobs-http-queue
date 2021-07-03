@@ -67,19 +67,25 @@ ghc-options:
 
 executables:
   http-queue-source:
-    source-dirs:      src
+    source-dirs:
+      - common
+      - source
     main:             Source.hs
     ghc-options:
       - -main-is Source
 
   http-queue-sink:
-    source-dirs:      src
+    source-dirs:
+      - common
+      - sink
     main:             Sink.hs
     ghc-options:
       - -main-is Sink
 
   http-queue-migrations:
-    source-dirs:      src
+    source-dirs:
+      - common
+      - migrations
     main:             Migrations.hs
     ghc-options:
       - -main-is Migrations
@@ -88,7 +94,10 @@ tests:
   http-queue-tests:
     main: Test
     source-dirs:
-      - src
+      - common
+      - source
+      - sink
+      - migrations
       - test
     dependencies:
       - tasty

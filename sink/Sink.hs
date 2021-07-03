@@ -23,7 +23,6 @@ import Network.HTTP.Client.TLS (getGlobalManager)
 import System.Log.FastLogger as FL
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as C8
-import Migrations (runMigrations)
 import UnliftIO.Async
 
 data Env = Env
