@@ -26,6 +26,8 @@ import Data.Pool (Pool)
 import Database.PostgreSQL.Simple as PGS (Connection)
 import UnliftIO (IORef)
 import Data.Hashable (Hashable)
+import qualified Data.CaseInsensitive as CI
+
 
 jobTable :: TableName
 jobTable = "jobs"
@@ -53,6 +55,23 @@ data Req = Req
   , reqRemaining :: !Int
   }
 
+instance FromRow Req where
+  fromRow = Req
+    <$> field
+    <*> field
+    <*> field
+    <*> field
+    <*> fmap (DL.map toHeader . fromPGArray) field
+    <*> field
+    <*> field
+    where
+      toHeader x = case fromPGArray x of
+        [k, v] -> (CI.mk k, v)
+        z -> Prelude.error $ "Unexpected values in headers: " <> show z
+
+
+reqDbColumns :: PGS.Query
+reqDbColumns = "id, method, path, query, headers, body, remaining"
 
 -- instance FromRow Req where
 --   fromRow = Req
@@ -126,6 +145,9 @@ instance FromRow Sink where
     <*> field
     <*> field
     <*> field
+
+sinkDbColumns :: PGS.Query
+sinkDbColumns = "id, active, source_path, sink_url"
 
 type SinkPathMap = HM.HashMap BS.ByteString [Sink]
 type SinkIdMap = HM.HashMap SinkId Http.Request

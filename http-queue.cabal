@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 03ba679a84811f983b92792c550fc7c0263e51043c9274fadf2cb83518e2b602
+-- hash: bf5c521e8d9479f948089f7fd745c9b87348caa3d267bb364ff20dd698777f75
 
 name:           http-queue
 version:        0.1.0.0
@@ -155,6 +155,7 @@ executable http-queue-ui
     , http-client
     , http-client-tls
     , http-types
+    , lucid
     , odd-jobs
     , optparse-applicative
     , postgresql-simple

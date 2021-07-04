@@ -97,6 +97,8 @@ executables:
     main:             UI.hs
     ghc-options:
       - -main-is UI
+    dependencies:
+      - lucid
 
 tests:
   http-queue-tests:
