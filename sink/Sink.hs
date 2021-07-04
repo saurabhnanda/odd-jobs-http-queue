@@ -17,7 +17,6 @@ import UnliftIO.IORef
 import UnliftIO (throwIO)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.CaseInsensitive as CI
-import qualified OddJobs.Cli as Job (defaultMain)
 import OddJobs.ConfigBuilder as Job
 import Network.HTTP.Client.TLS (getGlobalManager)
 import System.Log.FastLogger as FL
@@ -46,12 +45,12 @@ main = do
       envSinkIdMapRef <- (withResource envPool loadActiveSinks) >>= prepareSinkIdMap >>= newIORef
 
       let jobCfg = Job.mkConfig
-                   jobLogFn
-                   jobTable
-                   envPool
-                   (MaxConcurrentJobs 1000)
-                   (runJob Env{..}) $
-                   \cfg -> cfg { cfgDefaultMaxAttempts = 17 }
+            jobLogFn
+            jobTable
+            envPool
+            (MaxConcurrentJobs 1000)
+            (runJob Env{..}) $
+            \cfg -> cfg { cfgDefaultMaxAttempts = 17 }
 
       let sinkCfgListener = withResource envPool $ \conn ->
             Common.withSinkCfgListener conn $ \sinks -> do

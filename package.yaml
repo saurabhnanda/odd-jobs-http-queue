@@ -90,6 +90,14 @@ executables:
     ghc-options:
       - -main-is Migrations
 
+  http-queue-ui:
+    source-dirs:
+      - common
+      - ui
+    main:             UI.hs
+    ghc-options:
+      - -main-is UI
+
 tests:
   http-queue-tests:
     main: Test
