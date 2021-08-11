@@ -30,7 +30,6 @@ resolver: lts-15.6
 #   - wai
 packages:
 - .
-- ../odd-jobs
 # Dependency packages to be pulled from upstream that are not in the resolver.
 # These entries can reference officially published versions as well as
 # forks / in-progress versions pinned to a git hash. For example:
@@ -43,6 +42,8 @@ packages:
 extra-deps:
   - timing-convenience-0.1@sha256:7ff807a9a9e5596f2b18d45c5a01aefb91d4a98f6a1008d183b5c550f68f7cb7,2092
   - daemons-0.3.0@sha256:356edaf06a8cf5e9f19685f9ce793ad6d2b6bce2e55379f6b2aff1b0c07a633f,3178
+  - git: https://github.com/saurabhnanda/odd-jobs.git
+    commit: 33039f369959a3d98e1ed842583f5a10c06c13ae
 
 
 # Override default flag values for local packages and extra-deps
