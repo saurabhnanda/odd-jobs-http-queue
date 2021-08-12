@@ -23,6 +23,7 @@ import System.Log.FastLogger as FL
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as C8
 import UnliftIO.Async
+import Options.Applicative as Opts
 
 data Env = Env
   { envPool :: !(Pool Connection)
@@ -31,8 +32,16 @@ data Env = Env
   , envLogger :: LogLevel -> LogStr -> IO ()
   }
 
+data CliArgs = CliArgs
+  { cliDbCreds :: !PGS.ConnectInfo
+  , cliDbMaxConn :: !Int
+  }
+
 main :: IO ()
 main = do
+  let parserPrefs = prefs $ showHelpOnEmpty <> showHelpOnError
+      parserInfo =  info (cliArgParser  <**> helper) fullDesc
+  CliArgs{..} <- customExecParser parserPrefs parserInfo
   envManager <- getGlobalManager
   tcache <- FL.newTimeCache FL.simpleTimeFormat
   putStrLn "### [Sink] before withTimedFastLogger..."
@@ -40,7 +49,7 @@ main = do
     let jobLogFn = Job.defaultTimedLogger tlogger (Job.defaultLogStr Job.defaultJobType)
         envLogger = loggingFn tlogger
     putStrLn "### [Sink] before runPool..."
-    withPool "dbname=http_queue user=b2b password=b2b host=localhost" $ \envPool -> do
+    withPool cliDbCreds cliDbMaxConn $ \envPool -> do
       putStrLn "### [Sink] before prepraeSinkIdMap..."
       envSinkIdMapRef <- (withResource envPool loadActiveSinks) >>= prepareSinkIdMap >>= newIORef
 
@@ -130,3 +139,8 @@ createSink conn args = head <$> PGS.query conn qry args
 runJob :: Env -> Job -> IO ()
 runJob env j = (throwParsePayload j) >>= \case
   JobReq rid sid -> void $ callSink env rid sid
+
+cliArgParser :: Parser CliArgs
+cliArgParser = CliArgs
+  <$> Common.dbCredParser
+  <*> option auto (long "db-max-connections" <> metavar "MAXCONN" <> value 20 <> showDefault <> help "Maximum connections in DB pool")

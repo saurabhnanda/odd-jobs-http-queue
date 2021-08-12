@@ -154,4 +154,3 @@ type SinkIdMap = HM.HashMap SinkId Http.Request
 
 data SinkNotFoundException = SinkNotFoundException SinkId deriving (Eq, Show)
 instance Exception SinkNotFoundException
-

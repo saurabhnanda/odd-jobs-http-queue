@@ -8,7 +8,7 @@ import System.Log.FastLogger as FL
 import OddJobs.Cli as Cli
 import qualified OddJobs.ConfigBuilder as Cfg
 import OddJobs.Types (UIConfig(..))
-import Common (withPool)
+import Common (withPool, dbCredParser)
 import OddJobs.Job (Job(..), eitherParsePayload)
 import Lucid
 import Lucid.Html5
@@ -16,17 +16,25 @@ import qualified Data.List as DL
 import Database.PostgreSQL.Simple as PGS
 import Database.PostgreSQL.Simple.Types as PGS
 import Data.Pool
+import Options.Applicative as Opts
+
+data CliArgs = CliArgs
+  { cliDbCreds :: !PGS.ConnectInfo
+  , cliDbMaxConn :: !Int
+  , cliUiStartArgs :: !Cli.UIStartArgs
+  }
 
 main :: IO ()
-main = runCli CliOnlyWebUi{..}
-  where
-    cliStartWebUI uiStartArgs cfgCliOverrides = do
-      tcache <- FL.newTimeCache FL.simpleTimeFormat
-      withTimedFastLogger tcache (LogStdout FL.defaultBufSize) $ \tlogger -> do
-        let jobLogger = Cfg.defaultTimedLogger tlogger (Cfg.defaultLogStr Cfg.defaultJobType)
-        withPool "dbname=http_queue user=b2b password=b2b host=localhost" $ \dbPool -> do
-          Cli.defaultWebUI uiStartArgs $ Cfg.mkUIConfig jobLogger jobTable dbPool $ \cfg ->
-            cfgCliOverrides $ cfg { uicfgJobToHtml = jobsToHtml dbPool }
+main = do
+  let parserPrefs = prefs $ showHelpOnEmpty <> showHelpOnError
+      parserInfo =  info (cliArgParser  <**> helper) fullDesc
+  CliArgs{..} <- customExecParser parserPrefs parserInfo
+  tcache <- FL.newTimeCache FL.simpleTimeFormat
+  withTimedFastLogger tcache (LogStdout FL.defaultBufSize) $ \tlogger -> do
+    let jobLogger = Cfg.defaultTimedLogger tlogger (Cfg.defaultLogStr Cfg.defaultJobType)
+    withPool cliDbCreds cliDbMaxConn $ \dbPool -> do
+      Cli.defaultWebUI cliUiStartArgs $ Cfg.mkUIConfig jobLogger jobTable dbPool $ \cfg ->
+        cfg { uicfgJobToHtml = jobsToHtml dbPool }
 
 jobsToHtml :: Pool Connection -> [Job] -> IO [Html ()]
 jobsToHtml dbPool jobs = do
@@ -73,3 +81,8 @@ jobsToHtml dbPool jobs = do
               " "
               Cfg.defaultErrorToHtml e
 
+cliArgParser :: Parser CliArgs
+cliArgParser = CliArgs
+  <$> Common.dbCredParser
+  <*> option auto (long "db-max-connections" <> metavar "MAXCONN" <> value 5 <> showDefault <> help "Maximum connections in DB pool")
+  <*> Cli.uiStartArgsParser

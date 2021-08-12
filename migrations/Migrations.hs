@@ -7,6 +7,8 @@ import Types (jobTable, sinkChangedChannel)
 import Data.Functor (void)
 import Debug.Trace
 import UnliftIO (bracket)
+import Common (dbCredParser)
+import Options.Applicative as Opts
 
 createHttpSourceTableQuery :: Query
 createHttpSourceTableQuery =
@@ -44,15 +46,14 @@ createSinkTrigger =
 
 runMigrations :: Connection -> IO ()
 runMigrations conn = do
-  traceM "MIGRATIONS 1"
   Job.createJobTable conn jobTable
-  traceM "MIGRATIONS 2"
   void $ PGS.execute conn createHttpSourceTableQuery (Only $ PGS.Identifier "http_requests")
-  traceM "MIGRATIONS 3"
   void $ PGS.execute conn createHttpSinkTableQuery (Only $ PGS.Identifier "http_sinks")
-  traceM "MIGRATIONS 4"
   void $ PGS.execute conn createSinkTrigger (Only sinkChangedChannel)
-  traceM "MIGRATIONS 5"
 
 main :: IO ()
-main = bracket (PGS.connectPostgreSQL "dbname=http_queue user=b2b password=b2b host=localhost") PGS.close runMigrations
+main = do
+  let parserPrefs = prefs $ showHelpOnEmpty <> showHelpOnError
+      parserInfo =  info (dbCredParser  <**> helper) fullDesc
+  connInfo <- customExecParser parserPrefs parserInfo
+  bracket (PGS.connect connInfo) PGS.close runMigrations

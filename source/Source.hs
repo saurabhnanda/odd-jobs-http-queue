@@ -36,6 +36,7 @@ import Network.HTTP.Client.TLS (getGlobalManager)
 import Common
 import System.Log.FastLogger as FL
 import UnliftIO.Async
+import Options.Applicative as Opts
 
 data Env = Env
   { envPool :: !(Pool Connection)
@@ -44,21 +45,28 @@ data Env = Env
   , envLogger :: LogLevel -> LogStr -> IO ()
   }
 
+data CliArgs = CliArgs
+  { cliDbCreds :: !PGS.ConnectInfo
+  , cliDbMaxConn :: !Int
+  , cliListenPort :: !Port
+  }
 
 
 main :: IO ()
 main = do
+  let parserPrefs = prefs $ showHelpOnEmpty <> showHelpOnError
+      parserInfo =  info (cliArgParser  <**> helper) fullDesc
+  CliArgs{..} <- customExecParser parserPrefs parserInfo
   envManager <- getGlobalManager
   tcache <- FL.newTimeCache FL.simpleTimeFormat
   withTimedFastLogger tcache (LogStdout FL.defaultBufSize) $ \tlogger -> do
     let envLogger = loggingFn tlogger
     envLogger LevelDebug "--- [Source] before withPool"
-    withPool "dbname=http_queue user=b2b password=b2b host=localhost" $ \envPool -> do
+    withPool cliDbCreds cliDbMaxConn $ \envPool -> do
 
       envLogger LevelDebug "--- [Source] before createsinkMap"
       envSinkPathMapRef <- withResource envPool $ \conn ->
         (loadActiveSinks conn) >>= (newIORef . prepareSinkPathMap)
-
 
       let sinkCfgListener = withResource envPool $ \conn ->
             Common.withSinkCfgListener conn $ \sinks -> do
@@ -68,12 +76,8 @@ main = do
 
       envLogger LevelDebug "--- [Source] before withAsync sinkCfgListener"
       withAsync sinkCfgListener $ \_ -> do
-        envLogger LevelInfo "--- [Source] Starting on port 9000"
-        Warp.run 9000 $ coreApp Env{..}
-    where
-      isAdminUiHost req =
-        let h = requestHeaderHost req
-        in h == (Just "http-queue-admin") || (fmap (BS.isPrefixOf "http-queue-admin:") h == Just True)
+        envLogger LevelInfo $ toLogStr $ "--- [Source] Starting on port " <> (show cliListenPort)
+        Warp.run cliListenPort $ coreApp Env{..}
 
 -- TODO: Handle LogLevel properly
 loggingFn :: TimedFastLogger -> LogLevel -> LogStr -> IO ()
@@ -118,3 +122,9 @@ saveReq conn req sinkCnt = do
   where
     removeHeaders = DL.filter (\(k, _) -> k /= HT.hHost && k /= HT.hContentLength)
     qry = "INSERT INTO http_requests(method, path, query, headers, body, remaining) VALUES(?, ?, ?, ?, ?, ?) RETURNING id"
+
+cliArgParser :: Parser CliArgs
+cliArgParser = CliArgs
+  <$> Common.dbCredParser
+  <*> option auto (long "db-max-connections" <> metavar "MAXCONN" <> value 20 <> showDefault <> help "Maximum connections in DB pool")
+  <*> option auto (long "listen-port" <> metavar "PORT" <> value 8080 <> showDefault <> help "Port for incoming HTTP connections")

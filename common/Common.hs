@@ -13,13 +13,15 @@ import UnliftIO (bracket)
 import Control.Monad (forM, forever, void)
 import Database.PostgreSQL.Simple.Notification as PGS
 import Debug.Trace
+import Options.Applicative as Opts
 
-withPool :: BS.ByteString
+withPool :: PGS.ConnectInfo
+         -> Int
          -> (Pool PGS.Connection -> IO a)
          -> IO a
-withPool connString action = bracket poolcreator Pool.destroyAllResources action
+withPool connInfo maxConn action = bracket poolcreator Pool.destroyAllResources action
   where
-    poolcreator = Pool.createPool (PGS.connectPostgreSQL connString) PGS.close 1 5 10
+    poolcreator = Pool.createPool (PGS.connect connInfo) PGS.close 1 5 maxConn
 
 loadActiveSinks :: Connection -> IO [Sink]
 loadActiveSinks conn = PGS.queryWith_ parser conn qry
@@ -47,3 +49,11 @@ withSinkCfgListener conn action = do
     void $ PGS.getNotification conn
     sinks <- loadActiveSinks conn
     void $ action sinks
+
+dbCredParser :: Parser PGS.ConnectInfo
+dbCredParser = ConnectInfo
+  <$> strOption ( long "pg-host" <> metavar "PGHOST" <> help "Postgres host")
+  <*> option auto ( long "pg-port" <> metavar "PGPORT" <> value 5432 <> showDefault <> help "Postgres port")
+  <*> strOption ( long "pg-user" <> metavar "PGUSER" <> help "Postgres user")
+  <*> strOption ( long "pg-password" <> metavar "PGPASSWORD" <> help "Postgres password")
+  <*> strOption ( long "pg-database" <> metavar "PGDATABASE" <> help "Postgres database")
