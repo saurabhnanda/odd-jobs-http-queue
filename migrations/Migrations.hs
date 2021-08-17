@@ -31,7 +31,8 @@ createHttpSinkTableQuery =
   ", source_path text not null" <>
   ", sink_url text not null" <>
   ", created_at timestamp with time zone default now() not null" <>
-  ")"
+  "); \n" <>
+  "create unique index if not exists ? on ?(source_path, sink_url);"
 
 createSinkTrigger :: Query
 createSinkTrigger =
@@ -48,7 +49,10 @@ runMigrations :: Connection -> IO ()
 runMigrations conn = do
   Job.createJobTable conn jobTable
   void $ PGS.execute conn createHttpSourceTableQuery (Only $ PGS.Identifier "http_requests")
-  void $ PGS.execute conn createHttpSinkTableQuery (Only $ PGS.Identifier "http_sinks")
+  void $ PGS.execute conn createHttpSinkTableQuery ( PGS.Identifier "http_sinks"
+                                                   , PGS.Identifier "idx_uniq_http_sink"
+                                                   , PGS.Identifier "http_sinks"
+                                                   )
   void $ PGS.execute conn createSinkTrigger (Only sinkChangedChannel)
 
 main :: IO ()
