@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bf5c521e8d9479f948089f7fd745c9b87348caa3d267bb364ff20dd698777f75
+-- hash: 87ad0ca4d46b522d795f1bbf50f05c72fafdc969b1e539c776125b09515509fd
 
 name:           http-queue
 version:        0.1.0.0
@@ -23,6 +23,7 @@ executable http-queue-migrations
   main-is: Migrations.hs
   other-modules:
       Common
+      EcsLogging
       Types
       Paths_http_queue
   hs-source-dirs:
@@ -61,6 +62,7 @@ executable http-queue-sink
   main-is: Sink.hs
   other-modules:
       Common
+      EcsLogging
       Types
       Paths_http_queue
   hs-source-dirs:
@@ -99,6 +101,7 @@ executable http-queue-source
   main-is: Source.hs
   other-modules:
       Common
+      EcsLogging
       Types
       Paths_http_queue
   hs-source-dirs:
@@ -137,6 +140,7 @@ executable http-queue-ui
   main-is: UI.hs
   other-modules:
       Common
+      EcsLogging
       Types
       Paths_http_queue
   hs-source-dirs:
@@ -177,6 +181,7 @@ test-suite http-queue-tests
   main-is: Test.hs
   other-modules:
       Common
+      EcsLogging
       Types
       Source
       Sink
