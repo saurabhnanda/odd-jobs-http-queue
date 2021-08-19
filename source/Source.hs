@@ -32,11 +32,14 @@ import Data.String (fromString)
 import Data.Maybe (fromJust)
 import qualified Network.HTTP.Client as Http
 import qualified Data.ByteString.Char8 as C8
+import qualified Data.ByteString.Lazy.Char8 as LC8
 import Network.HTTP.Client.TLS (getGlobalManager)
 import Common
 import System.Log.FastLogger as FL
 import UnliftIO.Async
 import Options.Applicative as Opts
+import EcsLogging
+import UnliftIO.Exception (SomeException, handle)
 
 data Env = Env
   { envPool :: !(Pool Connection)
@@ -58,7 +61,8 @@ main = do
       parserInfo =  info (cliArgParser  <**> helper) fullDesc
   CliArgs{..} <- customExecParser parserPrefs parserInfo
   envManager <- getGlobalManager
-  tcache <- FL.newTimeCache FL.simpleTimeFormat
+
+  tcache <- FL.newTimeCache iso8601Format
   withTimedFastLogger tcache (LogStdout FL.defaultBufSize) $ \tlogger -> do
     let envLogger = loggingFn tlogger
     envLogger LevelDebug "--- [Source] before withPool"
@@ -77,7 +81,22 @@ main = do
       envLogger LevelDebug "--- [Source] before withAsync sinkCfgListener"
       withAsync sinkCfgListener $ \_ -> do
         envLogger LevelInfo $ toLogStr $ "--- [Source] Starting on port " <> (show cliListenPort)
-        Warp.run cliListenPort $ coreApp Env{..}
+        Warp.run cliListenPort $
+          loggingMiddleware tlogger $
+          coreApp Env{..}
+
+loggingMiddleware :: TimedFastLogger -> Wai.Application -> Wai.Application
+loggingMiddleware tlogger app req respond = do
+  (newReq, body) <- EcsLogging.getRequestBody req
+  let resLogger res = tlogger $ \t ->
+        toLogStr $ waiReqToEcsLog (ServiceName "http-queue-source") t req (Just $ BSL.fromChunks body) res
+      errLogger (e :: SomeException) = do
+        let res = Wai.responseLBS status500 [] $ LC8.pack $ show e
+        resLogger res
+        respond res
+  handle errLogger $ app newReq $ \res -> do
+    resLogger res
+    respond res
 
 -- TODO: Handle LogLevel properly
 loggingFn :: TimedFastLogger -> LogLevel -> LogStr -> IO ()
