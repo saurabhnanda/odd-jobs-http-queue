@@ -120,7 +120,7 @@ saveReq conn req sinkCnt = do
     (Only x):[] -> pure x
     y -> error $ "Unexpected result from SQL query: " <> show y
   where
-    removeHeaders = DL.filter (\(k, _) -> k /= HT.hHost && k /= HT.hContentLength)
+    removeHeaders = DL.filter (\(k, _) -> k /= HT.hHost && k /= HT.hContentLength && k /= HT.hTransferEncoding)
     qry = "INSERT INTO http_requests(method, path, query, headers, body, remaining) VALUES(?, ?, ?, ?, ?, ?) RETURNING id"
 
 cliArgParser :: Parser CliArgs
