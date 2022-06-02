@@ -18,7 +18,7 @@ import UnliftIO (throwIO)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.CaseInsensitive as CI
 import OddJobs.ConfigBuilder as Job
-import Network.HTTP.Client.TLS (getGlobalManager)
+import Network.HTTP.Client.TLS (newTlsManagerWith, tlsManagerSettings)
 import System.Log.FastLogger as FL
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as C8
@@ -42,7 +42,8 @@ main = do
   let parserPrefs = prefs $ showHelpOnEmpty <> showHelpOnError
       parserInfo =  info (cliArgParser  <**> helper) fullDesc
   CliArgs{..} <- customExecParser parserPrefs parserInfo
-  envManager <- getGlobalManager
+  -- TODO: hard-coding the default timeout to 10 mins - this should be configurable
+  envManager <- newTlsManagerWith tlsManagerSettings{managerResponseTimeout=(responseTimeoutMicro $ 1000000 * 60 * 10)}
   tcache <- FL.newTimeCache FL.simpleTimeFormat
   putStrLn "### [Sink] before withTimedFastLogger..."
   withTimedFastLogger tcache (LogStdout FL.defaultBufSize) $ \tlogger -> do

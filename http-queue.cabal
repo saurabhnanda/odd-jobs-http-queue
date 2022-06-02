@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bf5c521e8d9479f948089f7fd745c9b87348caa3d267bb364ff20dd698777f75
+-- hash: 07e7c725a313d3dca2e32b13cc5da2572ad3986fd56a42047c46808564cabc8f
 
 name:           http-queue
 version:        0.1.0.0
@@ -28,7 +28,23 @@ executable http-queue-migrations
   hs-source-dirs:
       common
       migrations
-  default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
+  default-extensions:
+      OverloadedStrings
+      RecordWildCards
+      DeriveGeneric
+      FlexibleInstances
+      FlexibleContexts
+      FunctionalDependencies
+      GeneralizedNewtypeDeriving
+      KindSignatures
+      MultiParamTypeClasses
+      TemplateHaskell
+      TypeFamilies
+      TypeSynonymInstances
+      QuasiQuotes
+      ScopedTypeVariables
+      LambdaCase
+      NamedFieldPuns
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Migrations
   build-depends:
       aeson
@@ -66,7 +82,23 @@ executable http-queue-sink
   hs-source-dirs:
       common
       sink
-  default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
+  default-extensions:
+      OverloadedStrings
+      RecordWildCards
+      DeriveGeneric
+      FlexibleInstances
+      FlexibleContexts
+      FunctionalDependencies
+      GeneralizedNewtypeDeriving
+      KindSignatures
+      MultiParamTypeClasses
+      TemplateHaskell
+      TypeFamilies
+      TypeSynonymInstances
+      QuasiQuotes
+      ScopedTypeVariables
+      LambdaCase
+      NamedFieldPuns
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Sink
   build-depends:
       aeson
@@ -104,7 +136,23 @@ executable http-queue-source
   hs-source-dirs:
       common
       source
-  default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
+  default-extensions:
+      OverloadedStrings
+      RecordWildCards
+      DeriveGeneric
+      FlexibleInstances
+      FlexibleContexts
+      FunctionalDependencies
+      GeneralizedNewtypeDeriving
+      KindSignatures
+      MultiParamTypeClasses
+      TemplateHaskell
+      TypeFamilies
+      TypeSynonymInstances
+      QuasiQuotes
+      ScopedTypeVariables
+      LambdaCase
+      NamedFieldPuns
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Source
   build-depends:
       aeson
@@ -142,7 +190,23 @@ executable http-queue-ui
   hs-source-dirs:
       common
       ui
-  default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
+  default-extensions:
+      OverloadedStrings
+      RecordWildCards
+      DeriveGeneric
+      FlexibleInstances
+      FlexibleContexts
+      FunctionalDependencies
+      GeneralizedNewtypeDeriving
+      KindSignatures
+      MultiParamTypeClasses
+      TemplateHaskell
+      TypeFamilies
+      TypeSynonymInstances
+      QuasiQuotes
+      ScopedTypeVariables
+      LambdaCase
+      NamedFieldPuns
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is UI
   build-depends:
       aeson
@@ -188,7 +252,23 @@ test-suite http-queue-tests
       sink
       migrations
       test
-  default-extensions: OverloadedStrings RecordWildCards DeriveGeneric FlexibleInstances FlexibleContexts FunctionalDependencies GeneralizedNewtypeDeriving KindSignatures MultiParamTypeClasses TemplateHaskell TypeFamilies TypeSynonymInstances QuasiQuotes ScopedTypeVariables LambdaCase NamedFieldPuns
+  default-extensions:
+      OverloadedStrings
+      RecordWildCards
+      DeriveGeneric
+      FlexibleInstances
+      FlexibleContexts
+      FunctionalDependencies
+      GeneralizedNewtypeDeriving
+      KindSignatures
+      MultiParamTypeClasses
+      TemplateHaskell
+      TypeFamilies
+      TypeSynonymInstances
+      QuasiQuotes
+      ScopedTypeVariables
+      LambdaCase
+      NamedFieldPuns
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Test
   build-depends:
       aeson
