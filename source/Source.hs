@@ -96,9 +96,9 @@ coreApp Env{..} req responseFn = withResource envPool $ \conn -> do
       rid <- saveReq conn req (DL.length sinks)
       jobs <- forM sinks $ \Sink{sinkId} -> Job.createJob conn jobTable $ JobReq rid sinkId
       let jids = DL.map Job.jobId jobs
-          jidStrs = show jids
-      envLogger LevelDebug $ "Queued: " <> (toLogStr $ show jidStrs)
-      responseFn $ Wai.responseLBS status200 [] $ "Queued: " <> (fromString jidStrs)
+          respBody = Aeson.encode $ Aeson.object [ "job_ids" Aeson..= jids ]
+      envLogger LevelDebug $ "Queued: " <> (toLogStr respBody)
+      responseFn $ Wai.responseLBS status200 [(HT.hContentType, "application/json")] respBody
 
 -- adminApp :: Wai.Application
 -- adminApp req responseFn =
