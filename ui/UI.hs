@@ -6,9 +6,10 @@ import Network.Wai as Wai
 import Network.Wai.Handler.Warp as Warp
 import System.Log.FastLogger as FL
 import OddJobs.Cli as Cli
+import OddJobs.Endpoints as UI
 import qualified OddJobs.ConfigBuilder as Cfg
 import OddJobs.Types (UIConfig(..))
-import Common (withPool, dbCredParser)
+import Common (withPool, dbCredParser, healthCheckMiddleware)
 import OddJobs.Job (Job(..), eitherParsePayload)
 import Lucid
 import Lucid.Html5
@@ -33,8 +34,12 @@ main = do
   withTimedFastLogger tcache (LogStdout FL.defaultBufSize) $ \tlogger -> do
     let jobLogger = Cfg.defaultTimedLogger tlogger (Cfg.defaultLogStr Cfg.defaultJobType)
     withPool cliDbCreds cliDbMaxConn $ \dbPool -> do
-      Cli.defaultWebUI cliUiStartArgs $ Cfg.mkUIConfig jobLogger jobTable dbPool $ \cfg ->
-        cfg { uicfgJobToHtml = jobsToHtml dbPool }
+      let uiCfg = Cfg.mkUIConfig jobLogger jobTable dbPool $ \cfg ->
+                    cfg { uicfgJobToHtml = jobsToHtml dbPool }
+      app <- UI.defaultWaiApp (uistartAuth cliUiStartArgs) uiCfg
+      Warp.run (uistartPort cliUiStartArgs) $
+        healthCheckMiddleware "/_health" dbPool 100000 app
+      
 
 jobsToHtml :: Pool Connection -> [Job] -> IO [Html ()]
 jobsToHtml dbPool jobs = do

@@ -14,6 +14,11 @@ import Control.Monad (forM, forever, void)
 import Database.PostgreSQL.Simple.Notification as PGS
 import Debug.Trace
 import Options.Applicative as Opts
+-- import Network.Wai (Middleware, responseLBS)
+import qualified Network.Wai as Wai
+import Network.HTTP.Types (status200, status202)
+import Control.Concurrent.Async (race)
+import Control.Concurrent (threadDelay)
 
 withPool :: PGS.ConnectInfo
          -> Int
@@ -57,3 +62,14 @@ dbCredParser = ConnectInfo
   <*> strOption ( long "pg-user" <> metavar "PGUSER" <> help "Postgres user")
   <*> strOption ( long "pg-password" <> metavar "PGPASSWORD" <> help "Postgres password")
   <*> strOption ( long "pg-database" <> metavar "PGDATABASE" <> help "Postgres database")
+
+healthCheckMiddleware :: BS.ByteString -> Pool PGS.Connection -> Int -> Wai.Middleware
+healthCheckMiddleware healthPath dbPool delay originalApp req respond =
+  case Wai.rawPathInfo req == healthPath of
+    False -> originalApp req respond
+    True -> do
+      (race (threadDelay delay) tryDbConn) >>= \case
+        Left _ -> respond $ Wai.responseLBS status202 mempty "degraded"
+        Right _ -> respond $ Wai.responseLBS status200 mempty "ok"
+  where
+    tryDbConn = withResource dbPool (const $ pure ())

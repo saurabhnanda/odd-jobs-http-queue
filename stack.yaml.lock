@@ -24,11 +24,11 @@ packages:
     git: https://github.com/saurabhnanda/odd-jobs.git
     pantry-tree:
       size: 2633
-      sha256: 93e13e2334268fe8969662edffa3ec2d0f4979eb5d3d16a3d71302989e908fae
-    commit: 33039f369959a3d98e1ed842583f5a10c06c13ae
+      sha256: 9791fae4751bcb5eddb67c6f8fe44ef5f6c87b1f35488c0fb42663c2d4550b58
+    commit: 0b0d95bae1af5f9bc6f5177939fb095626bf7f05
   original:
     git: https://github.com/saurabhnanda/odd-jobs.git
-    commit: 33039f369959a3d98e1ed842583f5a10c06c13ae
+    commit: 0b0d95bae1af5f9bc6f5177939fb095626bf7f05
 snapshots:
 - completed:
     size: 491387

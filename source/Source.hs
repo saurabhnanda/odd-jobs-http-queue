@@ -77,7 +77,9 @@ main = do
       envLogger LevelDebug "--- [Source] before withAsync sinkCfgListener"
       withAsync sinkCfgListener $ \_ -> do
         envLogger LevelInfo $ toLogStr $ "--- [Source] Starting on port " <> (show cliListenPort)
-        Warp.run cliListenPort $ coreApp Env{..}
+        Warp.run cliListenPort $ 
+          healthCheckMiddleware "/_health" envPool 100000 $
+          coreApp Env{..}
 
 -- TODO: Handle LogLevel properly
 loggingFn :: TimedFastLogger -> LogLevel -> LogStr -> IO ()

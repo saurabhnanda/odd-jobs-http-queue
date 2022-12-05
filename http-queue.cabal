@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 07e7c725a313d3dca2e32b13cc5da2572ad3986fd56a42047c46808564cabc8f
+-- hash: d30254d421cc71809a7298d767176aa1a3f4347629919bdc5a462d04a9dfb3bd
 
 name:           http-queue
 version:        0.1.0.0
@@ -48,6 +48,7 @@ executable http-queue-migrations
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Migrations
   build-depends:
       aeson
+    , async
     , base >=4.7 && <5
     , bytestring
     , case-insensitive
@@ -102,6 +103,7 @@ executable http-queue-sink
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Sink
   build-depends:
       aeson
+    , async
     , base >=4.7 && <5
     , bytestring
     , case-insensitive
@@ -156,6 +158,7 @@ executable http-queue-source
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Source
   build-depends:
       aeson
+    , async
     , base >=4.7 && <5
     , bytestring
     , case-insensitive
@@ -210,6 +213,7 @@ executable http-queue-ui
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is UI
   build-depends:
       aeson
+    , async
     , base >=4.7 && <5
     , bytestring
     , case-insensitive
@@ -272,6 +276,7 @@ test-suite http-queue-tests
   ghc-options: -Wall -fno-warn-orphans -fno-warn-unused-imports -fno-warn-dodgy-exports -Werror=missing-fields -Werror=incomplete-patterns -threaded -with-rtsopts=-N -main-is Test
   build-depends:
       aeson
+    , async
     , base >=4.7 && <5
     , bytestring
     , case-insensitive

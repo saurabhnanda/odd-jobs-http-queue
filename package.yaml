@@ -54,7 +54,8 @@ dependencies:
   - case-insensitive
   - hashable
   - fast-logger
-
+  - async
+  
 ghc-options: 
   - -Wall 
   - -fno-warn-orphans 
